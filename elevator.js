@@ -1,39 +1,46 @@
-const floorsNumber = 10;
-let currentFloor = 0;
-const calls = [];
-let areDoorsOpen = false;
-let direction = 0;
+class Elevator {
+    constructor(floorsNumber, currentFloor, areDoorsOpen) {
+        this.floorsNumber = floorsNumber;
+        this.currentFloor = currentFloor;
+        this.areDoorsOpen = areDoorsOpen;
+        this.direction = 0;
 
-let index = 0;
+        const calls = [];
 
-while (index < floorsNumber) {
-    calls.push(false);
-    index++;
+        let index = 0;
+
+        while (index < floorsNumber) {
+            calls.push(false);
+            index++;
+        }
+
+        this.calls = calls;
+    }
 }
 
-const decideDirection = () => {
-    if (direction === 0) {
-        if (isCalledBelow()) {
-            direction = -1;
-        } else if (isCalledAbove()) {
-            direction = 1;
+const decideDirection = (elevator) => {
+    if (elevator.direction === 0) {
+        if (isCalledBelow(elevator)) {
+            elevator.direction = -1;
+        } else if (isCalledAbove(elevator)) {
+            elevator.direction = 1;
         }
     }
 };
 
-const callElevator = (floor) => {
-    calls[floor] = true;
-    decideDirection();
+const callElevator = (elevator, floor) => {
+    elevator.calls[floor] = true;
+    decideDirection(elevator);
 };
 
-const isCalledOnSameFloor = () => {
-    return calls[currentFloor];
+const isCalledOnSameFloor = (elevator) => {
+    return elevator.calls[elevator.currentFloor];
 };
 
-const isCalledAbove = () => {
-    let i = currentFloor + 1;
-    while (i < floorsNumber) {
-        if (calls[i]) {
+const isCalledAbove = (elevator) => {
+    let i = elevator.currentFloor + 1;
+    while (i < elevator.floorsNumber) {
+        if (elevator.calls[i]) {
             return true;
         }
         i++;
@@ -41,10 +48,10 @@ const isCalledAbove = () => {
     return false;
 };
 
-const isCalledBelow = () => {
-    let i = currentFloor - 1;
+const isCalledBelow = (elevator) => {
+    let i = elevator.currentFloor - 1;
     while (i >= 0) {
-        if (calls[i]) {
+        if (elevator.calls[i]) {
             return true;
         }
         i--;
@@ -52,10 +59,10 @@ const isCalledBelow = () => {
     return false;
 };
 
-const isTopMostCall = () => {
-    let i = currentFloor + 1;
-    while (i < floorsNumber) {
-        if (calls[i]) {
+const isTopMostCall = (elevator) => {
+    let i = elevator.currentFloor + 1;
+    while (i < elevator.floorsNumber) {
+        if (elevator.calls[i]) {
             return false;
         }
         i++;
@@ -63,85 +70,93 @@ const isTopMostCall = () => {
     return true;
 };
 
-const goOneFloor = (delta) => {
-    currentFloor += delta;
+const goOneFloor = (elevator, delta) => {
+    elevator.currentFloor += delta;
 };
 
-const goOneFloorDown = () => {
-    goOneFloor(-1);
-}
-
-const goOneFloorUp = () => {
-    goOneFloor(1);
+const goOneFloorDown = (elevator) => {
+    goOneFloor(elevator, -1);
 };
 
-const openDoors = () => {
-    calls[currentFloor] = false;
-    areDoorsOpen = true;
-    direction = 0;
+const goOneFloorUp = (elevator) => {
+    goOneFloor(elevator, 1);
 };
 
-const closeDoors = () => {
-    areDoorsOpen = false;
-    decideDirection();
-}
-
-const isGoingUp = () => {
-    return direction === 1;
+const openDoors = (elevator) => {
+    elevator.calls[elevator.currentFloor] = false;
+    elevator.areDoorsOpen = true;
+    elevator.direction = 0;
 };
 
-const isGoingDown = () => {
-    return direction === -1;
+const closeDoors = (elevator) => {
+    elevator.areDoorsOpen = false;
+    decideDirection(elevator);
 };
 
-const isStopped = () => {
-    return direction === 0;
+const isGoingUp = (elevator) => {
+    return elevator.direction === 1;
 };
 
-const elevator = () => {
-    if (isGoingUp()) {
-        if (isCalledOnSameFloor() && isTopMostCall()) {
-            openDoors();
+const isGoingDown = (elevator) => {
+    return elevator.direction === -1;
+};
+
+const isStopped = (elevator) => {
+    return elevator.direction === 0;
+};
+
+const elevatorGo = (elevator) => {
+    if (isGoingUp(elevator)) {
+        if (isCalledOnSameFloor(elevator) && isTopMostCall(elevator)) {
+            openDoors(elevator);
         } else {
-            goOneFloorUp();
+            goOneFloorUp(elevator);
         }
         return;
     }
-    if (isGoingDown()) {
-        if (isCalledOnSameFloor()) {
-            openDoors();
+    if (isGoingDown(elevator)) {
+        if (isCalledOnSameFloor(elevator)) {
+            openDoors(elevator);
         } else {
-            goOneFloorDown();
+            goOneFloorDown(elevator);
         }
         return;
     }
-    if (isCalledOnSameFloor()) {
-        openDoors();
+    if (isCalledOnSameFloor(elevator)) {
+        openDoors(elevator);
     }
 };
 
-callElevator(4);
-while (!isStopped()) {
-    if (currentFloor === 1) {
-        callElevator(2);
+const elevatorTen = new Elevator(10, 0, false);
+
+console.log(elevatorTen);
+
+const inspectElevator = (elevator, prefix) => {
+    console.log(`${prefix}: `, elevator.currentFloor + 1, `doors: ${elevator.areDoorsOpen ? 'open' : 'close'}`);
+};
+
+callElevator(elevatorTen, 4);
+while (!isStopped(elevatorTen)) {
+    if (elevatorTen.currentFloor === 1) {
+        callElevator(elevatorTen, 2);
     }
-    console.log('was: ', currentFloor + 1, `doors: ${areDoorsOpen ? 'open' : 'close'}`);
-    elevator();
-    console.log('became: ', currentFloor + 1, `doors: ${areDoorsOpen ? 'open' : 'close'}`);
+    inspectElevator(elevatorTen, 'was');
+    elevatorGo(elevatorTen);
+    inspectElevator(elevatorTen, 'became');
     console.log('---------------------');
 }
-closeDoors();
-while (!isStopped()) {
-    console.log('was: ', currentFloor + 1, `doors: ${areDoorsOpen ? 'open' : 'close'}`);
-    elevator();
-    console.log('became: ', currentFloor + 1, `doors: ${areDoorsOpen ? 'open' : 'close'}`);
+closeDoors(elevatorTen);
+while (!isStopped(elevatorTen)) {
+    inspectElevator(elevatorTen, 'was');
+    elevatorGo(elevatorTen);
+    inspectElevator(elevatorTen, 'became');
     console.log('---------------------');
 }
-callElevator(0);
-closeDoors();
-while (!isStopped()) {
-    console.log('was: ', currentFloor + 1, `doors: ${areDoorsOpen ? 'open' : 'close'}`);
-    elevator();
-    console.log('became: ', currentFloor + 1, `doors: ${areDoorsOpen ? 'open' : 'close'}`);
+callElevator(elevatorTen, 0);
+closeDoors(elevatorTen);
+while (!isStopped(elevatorTen)) {
+    inspectElevator(elevatorTen, 'was');
+    elevatorGo(elevatorTen);
+    inspectElevator(elevatorTen, 'became');
     console.log('---------------------');
 }
